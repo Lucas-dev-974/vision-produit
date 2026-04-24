@@ -5,5 +5,4 @@ dev-dist
 build
 types
 .idea
-.github
 .env

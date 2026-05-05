@@ -1,7 +1,8 @@
-import { createSignal } from 'solid-js';
+import { createSignal, Show } from 'solid-js';
 import { A, useNavigate } from '@solidjs/router';
 import { Button } from '../../components/ui/button';
 import { authStore } from '../../stores/auth.store';
+import { env } from '../../config/env';
 import type { ApiError } from '../../services/http-client';
 
 export function Login() {
@@ -44,12 +45,25 @@ export function Login() {
   return (
     <div class="mx-auto flex min-h-full max-w-md flex-col justify-center px-4 py-16">
       <h1 class="font-display text-3xl font-semibold text-ink">Connexion</h1>
-      <p class="mt-2 text-sm text-ink/70">
-        Pas encore de compte ?{' '}
-        <A href="/register" class="font-medium text-moss hover:underline">
-          Inscription
-        </A>
-      </p>
+      <Show
+        when={env.APP_OPEN}
+        fallback={
+          <p class="mt-2 text-sm text-ink/70">
+            La plateforme n'est pas encore ouverte au public.{' '}
+            <A href="/pre-inscription" class="font-medium text-moss hover:underline">
+              Pré-inscrivez-vous
+            </A>{' '}
+            pour être prévenu·e à l'ouverture.
+          </p>
+        }
+      >
+        <p class="mt-2 text-sm text-ink/70">
+          Pas encore de compte ?{' '}
+          <A href="/register" class="font-medium text-moss hover:underline">
+            Inscription
+          </A>
+        </p>
+      </Show>
 
       <form
         class="mt-8 space-y-4"

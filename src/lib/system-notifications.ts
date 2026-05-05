@@ -5,6 +5,8 @@
  * Pas de serveur push dans cette version : uniquement affichage quand l’app est ouverte ou en arrière-plan avec polling.
  */
 
+import { APP_NAME } from '../config/constants';
+
 export type NotificationSupport = 'granted' | 'denied' | 'default' | 'unsupported';
 
 export function getNotificationState(): NotificationSupport {
@@ -27,18 +29,18 @@ export function notifyInboxActivity(kind: 'message' | 'order'): void {
   if (typeof window === 'undefined' || Notification.permission !== 'granted') return;
   try {
     if (kind === 'message') {
-      new Notification('MonAppli — Messagerie', {
+      new Notification(`${APP_NAME} — Messagerie`, {
         body: 'Nouveau message',
         icon: '/pwa-192.png',
         badge: '/pwa-192.png',
-        tag: 'monappli-message',
+        tag: 'app-message',
       });
     } else {
-      new Notification('MonAppli — Commandes', {
+      new Notification(`${APP_NAME} — Commandes`, {
         body: 'Mise à jour sur une commande',
         icon: '/pwa-192.png',
         badge: '/pwa-192.png',
-        tag: 'monappli-order',
+        tag: 'app-order',
       });
     }
   } catch {

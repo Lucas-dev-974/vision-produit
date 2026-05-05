@@ -3,6 +3,7 @@ import { A } from '@solidjs/router';
 import type { RouteSectionProps } from '@solidjs/router';
 import { authStore } from '../../stores/auth.store';
 import { inboxStore } from '../../stores/inbox.store';
+import { APP_NAME } from '../../config/constants';
 
 const navLink =
   'rounded-md px-1.5 py-1 hover:text-moss focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-moss';
@@ -71,7 +72,7 @@ export function AppLayout(props: RouteSectionProps) {
       <header class="border-b border-cream-dark bg-cream/90 backdrop-blur">
         <div class="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <A href="/app/dashboard" class="font-display text-lg font-semibold text-moss">
-            MonAppli
+            {APP_NAME}
           </A>
           <nav class="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm font-medium text-ink">
             <A href="/app/dashboard" class={navLink} activeClass="text-moss">

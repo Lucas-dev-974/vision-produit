@@ -5,6 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const apiBase = env.VITE_API_BASE_URL || 'http://localhost:3000/v1';
+  const appName = (env.VITE_APP_NAME || 'MonAppli').trim();
   let apiRuntimePattern: RegExp | undefined;
   try {
     const origin = new URL(apiBase).origin;
@@ -21,8 +22,8 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.svg', 'robots.txt', 'pwa-192.png', 'pwa-512.png'],
         manifest: {
-          name: 'MonAppli — Producteurs & commerçants 974',
-          short_name: 'MonAppli',
+          name: `${appName} — Producteurs & commerçants 974`,
+          short_name: appName,
           description:
             'Mise en relation producteurs et commerçants à La Réunion — catalogue, précommandes, messagerie.',
           lang: 'fr',

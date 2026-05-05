@@ -1,15 +1,24 @@
 import { A } from '@solidjs/router';
-import { For, Show, createResource, onMount } from 'solid-js';
+import { Show, onMount } from 'solid-js';
 import { Button } from '../../components/ui/button';
 import { APP_NAME } from '../../config/constants';
-import { publicService } from '../../services/public.service';
+import { env } from '../../config/env';
 import { authStore } from '../../stores/auth.store';
 
+/**
+ * Landing de pré-lancement.
+ *
+ * - Tant que `VITE_APP_OPEN=false` : on présente la plateforme et on pousse
+ *   uniquement la pré-inscription. Aucune connexion / inscription publique
+ *   n'est mise en avant (un lien discret « Espace admin » reste accessible).
+ * - Si `VITE_APP_OPEN=true` : on bascule vers les CTA Connexion / Inscription
+ *   classiques.
+ */
 export function Landing() {
-  const [producers] = createResource(() => publicService.listProducers(1, 12));
-
   onMount(() => {
-    void authStore.loadCurrentUser();
+    if (env.APP_OPEN) {
+      void authStore.loadCurrentUser();
+    }
   });
 
   return (
@@ -17,36 +26,45 @@ export function Landing() {
       <header class="mx-auto flex max-w-6xl items-center justify-between px-4 py-6">
         <span class="font-display text-xl font-semibold text-moss">{APP_NAME}</span>
         <div class="flex flex-wrap items-center justify-end gap-3">
-          <Show when={authStore.isLoading()}>
-            <span
-              class="inline-block h-10 w-28 animate-pulse rounded-lg bg-cream-dark/50"
-              aria-hidden
-            />
+          <Show when={env.APP_OPEN}>
+            <Show when={authStore.isLoading()}>
+              <span
+                class="inline-block h-10 w-28 animate-pulse rounded-lg bg-cream-dark/50"
+                aria-hidden
+              />
+            </Show>
+            <Show when={!authStore.isLoading() && authStore.currentUser()}>
+              <A href="/app">
+                <Button>Ouvrir l'app</Button>
+              </A>
+              <Button variant="ghost" onClick={() => void authStore.logout()}>
+                Déconnexion
+              </Button>
+            </Show>
+            <Show when={!authStore.isLoading() && !authStore.currentUser()}>
+              <A href="/login">
+                <Button variant="ghost">Connexion</Button>
+              </A>
+              <A href="/register">
+                <Button>Inscription</Button>
+              </A>
+            </Show>
           </Show>
-          <Show when={!authStore.isLoading() && authStore.currentUser()}>
-            <A href="/app">
-              <Button>Ouvrir l'app</Button>
-            </A>
-            <Button variant="ghost" onClick={() => void authStore.logout()}>
-              Déconnexion
-            </Button>
-          </Show>
-          <Show when={!authStore.isLoading() && !authStore.currentUser()}>
-            <A href="/login">
-              <Button variant="ghost">Connexion</Button>
-            </A>
-            <A href="/register">
-              <Button>Inscription</Button>
+          <Show when={!env.APP_OPEN}>
+            <A href="/pre-inscription">
+              <Button>Je me pré-inscris</Button>
             </A>
           </Show>
         </div>
       </header>
 
-      <main class="mx-auto max-w-6xl space-y-16 px-4 py-10">
-        <div class="grid gap-12 md:grid-cols-2 md:items-center">
+      <main class="mx-auto max-w-6xl space-y-20 px-4 py-12">
+        <section class="grid gap-12 md:grid-cols-2 md:items-center">
           <div class="space-y-6">
             <p class="inline-flex rounded-full bg-moss/10 px-3 py-1 text-xs font-mono uppercase tracking-wide text-moss">
-              Marché B2B — La Réunion (974)
+              <Show when={!env.APP_OPEN} fallback={<span>Marché B2B — La Réunion (974)</span>}>
+                <span>Bientôt disponible — La Réunion (974)</span>
+              </Show>
             </p>
             <h1 class="font-display text-4xl font-semibold leading-tight text-ink md:text-5xl">
               Producteurs locaux et commerçants, réunis sans intermédiaire financier.
@@ -56,26 +74,42 @@ export function Landing() {
               sécuriser la mise en relation, en français et en conformité RGPD (hébergement
               UE).
             </p>
+            <Show when={!env.APP_OPEN}>
+              <p class="max-w-xl rounded-xl border border-moss/20 bg-moss/5 px-4 py-3 text-sm text-ink/80">
+                La plateforme ouvre prochainement. Pré-inscrivez-vous pour être prévenu·e dès
+                l'ouverture et accéder en priorité aux premières mises en relation.
+              </p>
+            </Show>
             <div class="flex flex-wrap gap-3">
-              <Show when={authStore.isLoading()}>
-                <span
-                  class="inline-block h-11 w-44 animate-pulse rounded-lg bg-cream-dark/50"
-                  aria-hidden
-                />
-              </Show>
-              <Show when={!authStore.isLoading() && authStore.currentUser()}>
-                <A href="/app">
-                  <Button>Ouvrir l'app</Button>
+              <Show when={!env.APP_OPEN}>
+                <A href="/pre-inscription">
+                  <Button>Je me pré-inscris</Button>
+                </A>
+                <A href="/cgu">
+                  <Button variant="ghost">CGU</Button>
                 </A>
               </Show>
-              <Show when={!authStore.isLoading() && !authStore.currentUser()}>
-                <A href="/register">
-                  <Button>Créer un compte</Button>
+              <Show when={env.APP_OPEN}>
+                <Show when={authStore.isLoading()}>
+                  <span
+                    class="inline-block h-11 w-44 animate-pulse rounded-lg bg-cream-dark/50"
+                    aria-hidden
+                  />
+                </Show>
+                <Show when={!authStore.isLoading() && authStore.currentUser()}>
+                  <A href="/app">
+                    <Button>Ouvrir l'app</Button>
+                  </A>
+                </Show>
+                <Show when={!authStore.isLoading() && !authStore.currentUser()}>
+                  <A href="/register">
+                    <Button>Créer un compte</Button>
+                  </A>
+                </Show>
+                <A href="/cgu">
+                  <Button variant="ghost">CGU (placeholder)</Button>
                 </A>
               </Show>
-              <A href="/cgu">
-                <Button variant="ghost">CGU (placeholder)</Button>
-              </A>
             </div>
           </div>
 
@@ -95,75 +129,117 @@ export function Landing() {
               </p>
             </div>
           </div>
-        </div>
+        </section>
 
-        <section class="space-y-6" aria-labelledby="producteurs-heading">
-          <div class="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h2 id="producteurs-heading" class="font-display text-2xl font-semibold text-ink">
-                Producteurs sur l’île
-              </h2>
-              <p class="mt-1 text-sm text-ink/70">
-                Aperçu public — inscrivez-vous pour précommander et accéder au détail complet.
+        <section class="space-y-8" aria-labelledby="comment-ca-marche">
+          <h2 id="comment-ca-marche" class="font-display text-2xl font-semibold text-ink">
+            Comment ça marche
+          </h2>
+          <ol class="grid gap-4 md:grid-cols-3">
+            <li class="rounded-2xl border border-cream-dark bg-cream p-5 shadow-sm">
+              <p class="font-mono text-xs uppercase tracking-wide text-moss">Étape 1</p>
+              <p class="mt-2 font-display text-lg font-semibold text-ink">
+                Pré-inscription
               </p>
-            </div>
-            <Show when={producers.latest}>
-              {(res) => (
-                <p class="font-mono text-xs text-ink/60">
-                  {res().pagination.total} profil{res().pagination.total > 1 ? 's' : ''}
-                </p>
-              )}
-            </Show>
+              <p class="mt-2 text-sm text-ink/80">
+                Quelques informations sur votre activité et votre e-mail professionnel.
+              </p>
+            </li>
+            <li class="rounded-2xl border border-cream-dark bg-cream p-5 shadow-sm">
+              <p class="font-mono text-xs uppercase tracking-wide text-moss">Étape 2</p>
+              <p class="mt-2 font-display text-lg font-semibold text-ink">
+                Confirmation e-mail
+              </p>
+              <p class="mt-2 text-sm text-ink/80">
+                Vous recevez un lien à cliquer pour valider votre adresse e-mail.
+              </p>
+            </li>
+            <li class="rounded-2xl border border-cream-dark bg-cream p-5 shadow-sm">
+              <p class="font-mono text-xs uppercase tracking-wide text-moss">Étape 3</p>
+              <p class="mt-2 font-display text-lg font-semibold text-ink">
+                Accès anticipé
+              </p>
+              <p class="mt-2 text-sm text-ink/80">
+                Dès l'ouverture, nous vous contactons pour activer votre compte.
+              </p>
+            </li>
+          </ol>
+        </section>
+
+        <section class="space-y-6" aria-labelledby="faq">
+          <h2 id="faq" class="font-display text-2xl font-semibold text-ink">
+            Questions fréquentes
+          </h2>
+          <div class="grid gap-4 md:grid-cols-2">
+            <details class="rounded-xl border border-cream-dark bg-cream p-4">
+              <summary class="cursor-pointer font-medium text-ink">
+                Quand la plateforme ouvre-t-elle ?
+              </summary>
+              <p class="mt-2 text-sm text-ink/75">
+                Une ouverture progressive est prévue dans les prochains mois. Les
+                personnes pré-inscrites sont contactées en priorité.
+              </p>
+            </details>
+            <details class="rounded-xl border border-cream-dark bg-cream p-4">
+              <summary class="cursor-pointer font-medium text-ink">
+                Est-ce gratuit ?
+              </summary>
+              <p class="mt-2 text-sm text-ink/75">
+                La pré-inscription est gratuite et sans engagement. La grille tarifaire
+                de la V1 sera communiquée avant l'ouverture.
+              </p>
+            </details>
+            <details class="rounded-xl border border-cream-dark bg-cream p-4">
+              <summary class="cursor-pointer font-medium text-ink">
+                Mes données sont-elles protégées ?
+              </summary>
+              <p class="mt-2 text-sm text-ink/75">
+                Nous hébergeons vos informations dans l'Union européenne et appliquons
+                le RGPD. Vous pouvez demander leur suppression à tout moment.
+              </p>
+            </details>
+            <details class="rounded-xl border border-cream-dark bg-cream p-4">
+              <summary class="cursor-pointer font-medium text-ink">
+                Et si je ne suis pas encore décidé·e ?
+              </summary>
+              <p class="mt-2 text-sm text-ink/75">
+                Le formulaire propose une option « je ne sais pas encore ». Vous pouvez
+                vous pré-inscrire et préciser votre rôle plus tard.
+              </p>
+            </details>
           </div>
+        </section>
 
-          <Show when={producers.loading}>
-            <p class="rounded-xl border border-cream-dark bg-cream px-4 py-8 text-center text-ink/70">
-              Chargement des producteurs…
-            </p>
-          </Show>
-
-          <Show when={producers.error}>
-            <p
-              class="rounded-xl border border-rust/30 bg-rust/5 px-4 py-6 text-center text-rust"
-              role="alert"
-            >
-              Impossible de charger la liste des producteurs. Vérifiez que l’API est démarrée.
-            </p>
-          </Show>
-
-          <Show when={producers.latest}>
-            {(res) => (
-              <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <For each={res().items}>
-                  {(p) => (
-                    <li class="flex flex-col rounded-2xl border border-cream-dark bg-cream p-5 shadow-sm transition hover:border-moss/30">
-                      <p class="font-display text-lg font-semibold text-ink">
-                        {p.companyName ?? 'Producteur'}
-                      </p>
-                      <p class="mt-1 text-sm text-ink/65">
-                        {[p.city, p.postalCode].filter(Boolean).join(' · ') || 'La Réunion'}
-                      </p>
-                      <p class="mt-3 line-clamp-3 flex-1 text-sm text-ink/80">
-                        {p.description ?? '—'}
-                      </p>
-                      <div class="mt-4 flex flex-wrap items-center gap-3 border-t border-cream-dark pt-4 font-mono text-xs text-ink/70">
-                        <span>
-                          ★ {p.averageRating.toFixed(1)} ({p.totalRatings} avis)
-                        </span>
-                        <span>{p.reliabilityScore.toFixed(0)}% fiabilité</span>
-                      </div>
-                      <p class="mt-3 text-xs text-ink/50">
-                        Localisation approximative (±500 m) — connexion requise pour en savoir
-                        plus.
-                      </p>
-                    </li>
-                  )}
-                </For>
-              </ul>
-            )}
-          </Show>
+        <section class="rounded-2xl border border-moss/20 bg-moss/5 px-6 py-10 text-center">
+          <h2 class="font-display text-2xl font-semibold text-ink">
+            Prêt·e à rejoindre les premiers utilisateurs ?
+          </h2>
+          <p class="mx-auto mt-2 max-w-xl text-sm text-ink/75">
+            Laissez vos coordonnées en moins d'une minute, on s'occupe du reste.
+          </p>
+          <div class="mt-6 flex justify-center">
+            <A href="/pre-inscription">
+              <Button>Je me pré-inscris</Button>
+            </A>
+          </div>
         </section>
       </main>
+
+      <footer class="border-t border-cream-dark/60 bg-cream/60">
+        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-6 text-sm text-ink/60">
+          <span>
+            © {new Date().getFullYear()} {APP_NAME}
+          </span>
+          <div class="flex flex-wrap items-center gap-4">
+            <A href="/cgu" class="hover:text-moss">
+              CGU
+            </A>
+            <A href="/login" class="text-ink/40 hover:text-moss">
+              Espace admin
+            </A>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

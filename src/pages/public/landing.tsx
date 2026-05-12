@@ -1,6 +1,7 @@
 import { A } from '@solidjs/router';
-import { Show, onMount } from 'solid-js';
+import { Show, createSignal, onMount } from 'solid-js';
 import { Button } from '../../components/ui/button';
+import { SurveyModal } from '../../components/survey/survey-modal';
 import { APP_NAME } from '../../config/constants';
 import { env } from '../../config/env';
 import { authStore } from '../../stores/auth.store';
@@ -15,6 +16,8 @@ import { authStore } from '../../stores/auth.store';
  *   classiques.
  */
 export function Landing() {
+  const [surveyOpen, setSurveyOpen] = createSignal(false);
+
   onMount(() => {
     if (env.APP_OPEN) {
       void authStore.loadCurrentUser();
@@ -85,6 +88,14 @@ export function Landing() {
                 <A href="/pre-inscription">
                   <Button>Je me pré-inscris</Button>
                 </A>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  class="shadow-md"
+                  onClick={() => setSurveyOpen(true)}
+                >
+                  Questionnaire
+                </Button>
                 <A href="/cgu">
                   <Button variant="ghost">CGU</Button>
                 </A>
@@ -106,6 +117,14 @@ export function Landing() {
                     <Button>Créer un compte</Button>
                   </A>
                 </Show>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  class="shadow-md"
+                  onClick={() => setSurveyOpen(true)}
+                >
+                  Questionnaire
+                </Button>
                 <A href="/cgu">
                   <Button variant="ghost">CGU (placeholder)</Button>
                 </A>
@@ -240,6 +259,8 @@ export function Landing() {
           </div>
         </div>
       </footer>
+
+      <SurveyModal open={surveyOpen()} onClose={() => setSurveyOpen(false)} />
     </div>
   );
 }

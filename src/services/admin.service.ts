@@ -84,6 +84,27 @@ export interface AdminUserDetail extends AdminUserListItem {
   ordersSummary: { asBuyer: number; asProducer: number };
 }
 
+export type SurveyRespondentRole = 'producer' | 'merchant' | 'both';
+export type SurveyResponseStatus = 'new' | 'reviewed' | 'archived';
+
+export interface AdminSurveyResponse {
+  id: string;
+  contactName: string | null;
+  contactEmail: string;
+  contactPhone: string;
+  role: SurveyRespondentRole;
+  activityType: string | null;
+  zone: string | null;
+  sizeBracket: string | null;
+  answers: Record<string, unknown>;
+  consentRgpd: boolean;
+  consentRecontact: boolean;
+  status: SurveyResponseStatus;
+  source: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AdminPreRegistration {
   id: string;
   email: string;
@@ -213,6 +234,23 @@ export const adminService = {
       action?: string;
     }): Promise<PaginatedResult<AdminAuditEntry>> =>
       httpClient.getPaginated<AdminAuditEntry>(`/admin/audit${toQuery(params)}`),
+  },
+
+  surveys: {
+    list: (params: {
+      page: number;
+      pageSize: number;
+      status?: SurveyResponseStatus;
+      role?: SurveyRespondentRole;
+    }): Promise<PaginatedResult<AdminSurveyResponse>> =>
+      httpClient.getPaginated<AdminSurveyResponse>(`/admin/surveys${toQuery(params)}`),
+
+    get: (id: string) => httpClient.get<AdminSurveyResponse>(`/admin/surveys/${id}`),
+
+    updateStatus: (id: string, status: SurveyResponseStatus) =>
+      httpClient.patch<AdminSurveyResponse>(`/admin/surveys/${id}`, { status }),
+
+    delete: (id: string) => httpClient.delete<void>(`/admin/surveys/${id}`),
   },
 };
 

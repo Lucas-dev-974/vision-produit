@@ -24,6 +24,7 @@ import { AdminDashboard } from './pages/admin/dashboard';
 import { AdminUsers } from './pages/admin/users';
 import { AdminUserDetailPage } from './pages/admin/user-detail';
 import { AdminPreRegistrations } from './pages/admin/pre-registrations';
+import { AdminSurveys } from './pages/admin/surveys';
 import { AdminReports } from './pages/admin/reports';
 import { AdminReportDetailPage } from './pages/admin/report-detail';
 import { AdminAudit } from './pages/admin/audit';
@@ -79,6 +80,7 @@ export default function App() {
       <Route path="/admin" component={GatedAdminLayout}>
         <Route path="/" component={AdminDashboard} />
         <Route path="/pre-inscriptions" component={AdminPreRegistrations} />
+        <Route path="/questionnaires" component={AdminSurveys} />
         <Route path="/users" component={() => <AdminUsers mode="all" />} />
         <Route path="/users/pending" component={() => <AdminUsers mode="pending" />} />
         <Route path="/users/:id" component={AdminUserDetailPage} />

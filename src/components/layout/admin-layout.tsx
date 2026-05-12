@@ -13,6 +13,7 @@ interface NavItem {
 const NAV: NavItem[] = [
   { href: '/admin', label: 'Vue d\u2019ensemble', end: true },
   { href: '/admin/pre-inscriptions', label: 'Pré-inscriptions' },
+  { href: '/admin/questionnaires', label: 'Questionnaires' },
   { href: '/admin/users/pending', label: 'À approuver' },
   { href: '/admin/users', label: 'Utilisateurs', end: true },
   { href: '/admin/reports', label: 'Signalements' },

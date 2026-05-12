@@ -86,6 +86,8 @@ export interface AdminUserDetail extends AdminUserListItem {
 
 export type SurveyRespondentRole = 'producer' | 'merchant' | 'both';
 export type SurveyResponseStatus = 'new' | 'reviewed' | 'archived';
+/** Palier de priorisation (aligné sur `computeSurveyLeadTier` côté API). */
+export type SurveyLeadTier = 'hot' | 'warm' | 'cold' | 'out';
 
 export interface AdminSurveyResponse {
   id: string;
@@ -99,6 +101,7 @@ export interface AdminSurveyResponse {
   answers: Record<string, unknown>;
   consentRgpd: boolean;
   consentRecontact: boolean;
+  leadTier: SurveyLeadTier;
   status: SurveyResponseStatus;
   source: string | null;
   createdAt: string;
@@ -242,6 +245,7 @@ export const adminService = {
       pageSize: number;
       status?: SurveyResponseStatus;
       role?: SurveyRespondentRole;
+      leadTier?: SurveyLeadTier;
     }): Promise<PaginatedResult<AdminSurveyResponse>> =>
       httpClient.getPaginated<AdminSurveyResponse>(`/admin/surveys${toQuery(params)}`),
 

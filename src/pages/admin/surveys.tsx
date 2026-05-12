@@ -3,6 +3,7 @@ import { For, Show, createResource, createSignal } from 'solid-js';
 import {
   adminService,
   type AdminSurveyResponse,
+  type SurveyLeadTier,
   type SurveyResponseStatus,
   type SurveyRespondentRole,
 } from '../../services/admin.service';
@@ -27,6 +28,8 @@ export function AdminSurveys() {
   const [params, setParams] = useSearchParams();
   const initialStatus = (Array.isArray(params.status) ? params.status[0] : params.status) ?? '';
   const initialRole = (Array.isArray(params.role) ? params.role[0] : params.role) ?? '';
+  const initialLeadTier =
+    (Array.isArray(params.leadTier) ? params.leadTier[0] : params.leadTier) ?? '';
 
   const [page, setPage] = createSignal(Number(params.page ?? 1));
   const [status, setStatus] = createSignal<SurveyResponseStatus | ''>(
@@ -35,19 +38,23 @@ export function AdminSurveys() {
   const [role, setRole] = createSignal<SurveyRespondentRole | ''>(
     initialRole as SurveyRespondentRole | '',
   );
+  const [leadTier, setLeadTier] = createSignal<SurveyLeadTier | ''>(
+    initialLeadTier as SurveyLeadTier | '',
+  );
   const [expanded, setExpanded] = createSignal<string | null>(null);
   const [actionMsg, setActionMsg] = createSignal<string | null>(null);
 
   const pageSize = 20;
 
   const [list, { refetch }] = createResource(
-    () => ({ page: page(), status: status(), role: role() }),
+    () => ({ page: page(), status: status(), role: role(), leadTier: leadTier() }),
     (filters) =>
       adminService.surveys.list({
         page: filters.page,
         pageSize,
         status: (filters.status || undefined) as SurveyResponseStatus | undefined,
         role: (filters.role || undefined) as SurveyRespondentRole | undefined,
+        leadTier: (filters.leadTier || undefined) as SurveyLeadTier | undefined,
       }),
   );
 
@@ -55,6 +62,7 @@ export function AdminSurveys() {
     setParams({
       status: status() || undefined,
       role: role() || undefined,
+      leadTier: leadTier() || undefined,
       page: String(page()),
     });
   }
@@ -136,6 +144,25 @@ export function AdminSurveys() {
               <option value="both">Les deux</option>
             </select>
           </label>
+          <label class="block text-sm">
+            <span class="text-cream/60">Palier</span>
+            <select
+              value={leadTier()}
+              onChange={(e) => {
+                setLeadTier(e.currentTarget.value as SurveyLeadTier | '');
+                setPage(1);
+                syncParams();
+                void refetch();
+              }}
+              class="mt-1 w-48 rounded-md border border-cream/15 bg-ink px-3 py-2 text-sm text-cream focus:border-moss-light focus:outline-none"
+            >
+              <option value="">Tous</option>
+              <option value="hot">Chaud</option>
+              <option value="warm">Tiède</option>
+              <option value="cold">Froid</option>
+              <option value="out">Non intéressé</option>
+            </select>
+          </label>
         </div>
       </AdminCard>
 
@@ -162,6 +189,7 @@ export function AdminSurveys() {
                       <th class="px-2 py-2">Contact</th>
                       <th class="px-2 py-2">Profil</th>
                       <th class="px-2 py-2">Activité / Zone</th>
+                      <th class="px-2 py-2">Palier</th>
                       <th class="px-2 py-2">Statut</th>
                       <th class="px-2 py-2">Reçu le</th>
                       <th class="px-2 py-2">Actions</th>
@@ -204,6 +232,9 @@ export function AdminSurveys() {
                                   .filter((x) => x && x !== '—')
                                   .join(' · ') || '—'}
                               </p>
+                            </td>
+                            <td class="px-2 py-2">
+                              <LeadTierBadge tier={s.leadTier} />
                             </td>
                             <td class="px-2 py-2">
                               <StatusBadge value={s.status} />
@@ -254,7 +285,7 @@ export function AdminSurveys() {
                           </tr>
                           <Show when={expanded() === s.id}>
                             <tr class="border-b border-cream/10 bg-ink/40">
-                              <td colspan={6} class="px-4 py-4">
+                              <td colspan={7} class="px-4 py-4">
                                 <SurveyAnswersDetail item={s} />
                               </td>
                             </tr>
@@ -286,7 +317,7 @@ export function AdminSurveys() {
 function SurveyAnswersDetail(props: { item: AdminSurveyResponse }) {
   return (
     <div class="space-y-4">
-      <div class="grid gap-3 sm:grid-cols-3">
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <DetailCell label="Profil" value={findOptionLabel(ROLE_OPTIONS, props.item.role)} />
         <DetailCell
           label="Zone"
@@ -300,6 +331,7 @@ function SurveyAnswersDetail(props: { item: AdminSurveyResponse }) {
               : '—'
           }
         />
+        <DetailCell label="Palier" value={leadTierLabel(props.item.leadTier)} />
       </div>
 
       <For each={SURVEY_SECTIONS}>
@@ -341,6 +373,32 @@ function DetailCell(props: { label: string; value: string }) {
       </p>
       <p class="mt-1 text-sm text-cream">{props.value}</p>
     </div>
+  );
+}
+
+function leadTierLabel(tier: SurveyLeadTier): string {
+  const labels: Record<SurveyLeadTier, string> = {
+    hot: 'Chaud',
+    warm: 'Tiède',
+    cold: 'Froid',
+    out: 'Non intéressé',
+  };
+  return labels[tier];
+}
+
+function LeadTierBadge(props: { tier: SurveyLeadTier }) {
+  const tones: Record<SurveyLeadTier, string> = {
+    hot: 'bg-moss/25 text-moss-light',
+    warm: 'bg-ochre/20 text-ochre',
+    cold: 'bg-cream/10 text-cream/55',
+    out: 'bg-cream/10 text-cream/45',
+  };
+  return (
+    <span
+      class={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold tracking-wide ${tones[props.tier]}`}
+    >
+      {leadTierLabel(props.tier)}
+    </span>
   );
 }
 
